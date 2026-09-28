@@ -2,10 +2,10 @@ import { arrayToMap, easeOut, THEME } from "@excalidraw/common";
 
 import {
   computeBoundTextPosition,
-  distanceToElement,
   doBoundsIntersect,
   getBoundTextElement,
   getElementBounds,
+  getElementLineSegments,
   getFreedrawOutlineAsSegments,
   getFreedrawOutlinePoints,
   intersectElementWithLineSegment,
@@ -28,14 +28,12 @@ import { shouldTestInside } from "@excalidraw/element";
 import { hasBoundTextElement, isBoundToContainer } from "@excalidraw/element";
 import { getBoundTextElementId } from "@excalidraw/element";
 
-import type { Bounds } from "@excalidraw/element";
+import type { Bounds } from "@excalidraw/common";
 
 import type { GlobalPoint, LineSegment } from "@excalidraw/math/types";
 import type { ElementsMap, ExcalidrawElement } from "@excalidraw/element/types";
 
-import { AnimatedTrail } from "../animated-trail";
-
-import type { AnimationFrameHandler } from "../animation-frame-handler";
+import { AnimatedTrail } from "../animatedTrail";
 
 import type App from "../components/App";
 
@@ -43,8 +41,8 @@ export class EraserTrail extends AnimatedTrail {
   private elementsToErase: Set<ExcalidrawElement["id"]> = new Set();
   private groupsToErase: Set<ExcalidrawElement["id"]> = new Set();
 
-  constructor(animationFrameHandler: AnimationFrameHandler, app: App) {
-    super(animationFrameHandler, app, {
+  constructor(app: App) {
+    super(app, {
       streamline: 0.2,
       size: 5,
       keepHead: true,
@@ -265,19 +263,28 @@ const eraserTest = (
     }
 
     return false;
-  } else if (
-    isArrowElement(element) ||
-    (isLineElement(element) && !element.polygon)
-  ) {
+  }
+
+  const boundTextElement = getBoundTextElement(element, elementsMap);
+
+  if (isArrowElement(element) || (isLineElement(element) && !element.polygon)) {
     const tolerance = Math.max(
       element.strokeWidth,
       (element.strokeWidth * 2) / zoom,
     );
 
-    return distanceToElement(element, elementsMap, lastPoint) <= tolerance;
-  }
+    // If the eraser movement is so fast that a large distance is covered
+    // between the last two points, the distanceToElement miss, so we test
+    // agaist each segment of the linear element
+    const segments = getElementLineSegments(element, elementsMap);
+    for (const seg of segments) {
+      if (lineSegmentsDistance(seg, pathSegment) <= tolerance) {
+        return true;
+      }
+    }
 
-  const boundTextElement = getBoundTextElement(element, elementsMap);
+    return false;
+  }
 
   return (
     intersectElementWithLineSegment(element, elementsMap, pathSegment, 0, true)

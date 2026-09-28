@@ -1,6 +1,6 @@
 .zoom-actions,
 .undo-redo-buttons {
-  background-color: var(--island-bg-color);
+  background-color: var(--color-surface-low);
   border-radius: var(--border-radius-lg);
   box-shadow: 0 0 0 1px var(--color-surface-lowest);
 }
@@ -8,7 +8,6 @@
 .zoom-button,
 .undo-redo-buttons button {
   border-radius: 0 !important;
-  background-color: var(--color-surface-low) !important;
   font-size: 0.875rem !important;
   width: var(--lg-button-size);
   height: var(--lg-button-size);
@@ -31,6 +30,24 @@
   width: 3.75rem !important;
   justify-content: center;
   color: var(--text-primary-color);
+
+  // unlike the other zoom buttons, has no .ToolIcon__icon to show the hover
+  .zoom-actions &:hover:not(:active) {
+    background-color: var(--button-hover-bg);
+  }
+}
+
+// shifted left in zen mode (the wrapper rather than the button, so that the
+// tooltip, positioned off the wrapper, moves along)
+.reset-zoom-button-wrapper {
+  transition: transform var(--zen-mode-transition-duration) ease-in-out;
+}
+
+// faded out in zen mode
+.zoom-out-button-wrapper,
+.zoom-in-button-wrapper {
+  transition: opacity var(--zen-mode-transition-duration) ease-in-out,
+    visibility var(--zen-mode-transition-duration);
 }
 
 .zoom-out-button {
@@ -92,6 +109,20 @@
   }
 }
 
+// two separate rows (rather than a flex-wrap row break) so the panel's
+// intrinsic width is that of a single row
+.align-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
 .compact-shape-actions {
   display: flex;
   flex-direction: column;
@@ -106,15 +137,15 @@
     justify-content: center;
     align-items: center;
     min-height: 2.5rem;
+    pointer-events: auto;
 
     --default-button-size: 2rem;
 
     .compact-action-button {
-      width: 2rem;
-      height: 2rem;
+      width: var(--mobile-action-button-size);
+      height: var(--mobile-action-button-size);
       border: none;
       border-radius: var(--border-radius-lg);
-      background: transparent;
       color: var(--color-on-surface);
       cursor: pointer;
       display: flex;
@@ -122,23 +153,19 @@
       justify-content: center;
       transition: all 0.2s ease;
 
+      background: var(--mobile-action-button-bg);
+
       svg {
         width: 1rem;
         height: 1rem;
         flex: 0 0 auto;
       }
 
-      &:hover {
-        background: var(--button-hover-bg, var(--island-bg-color));
-        border-color: var(
-          --button-hover-border,
-          var(--button-border, var(--default-border-color))
+      &.active {
+        background: var(
+          --color-surface-primary-container,
+          var(--mobile-action-button-bg)
         );
-      }
-
-      &:active {
-        background: var(--button-active-bg, var(--island-bg-color));
-        border-color: var(--button-active-border, var(--color-primary-darkest));
       }
     }
 
@@ -167,6 +194,19 @@
       }
     }
   }
+
+  .ToolIcon {
+    .ToolIcon__icon {
+      width: var(--mobile-action-button-size);
+      height: var(--mobile-action-button-size);
+
+      background: var(--mobile-action-button-bg);
+
+      &:hover {
+        background-color: transparent;
+      }
+    }
+  }
 }
 
 .compact-shape-actions-island {
@@ -174,29 +214,18 @@
   overflow-x: hidden;
 }
 
-.compact-popover-content {
-  .popover-section {
-    margin-bottom: 1rem;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    .popover-section-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .buttonList {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
-    }
-  }
+.mobile-shape-actions {
+  z-index: 999;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border-radius: var(--border-radius-lg);
+  box-shadow: none;
+  overflow: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .shape-actions-theme-scope {
